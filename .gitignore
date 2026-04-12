@@ -1,0 +1,3 @@
+*.o
+gateforge
+src/lexer
