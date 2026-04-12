@@ -1,9 +1,8 @@
-#GateForge
+#Coppric
 
 
-GateForge is an HDL transpiler (.gf → Verilog) I created because I hate Verilog — how it looks, how it reads, and
-its syntax being worse than JavaScript.
-The syntax is inspired by Nand2Tetris: clean, readable, and (almost) logic gates only.
+Coppric is an HDL transpiler (.gf → Verilog) I created because I hate Verilog — how it looks, i hate its syntax,
+and i hate the fact its chips need to have a name. The syntax is inspired by Nand2Tetris: clean, readable, and (almost) logic gates only.
 
 
 Philosophy:
@@ -12,7 +11,8 @@ Philosophy:
 2: You will understand what you build and build what you understand.
 3: Want a feature? Make it yourself. Want a multiply gate? Build it.
 
-example Nand2Tetris ALU in this language:
+
+example Nand2Tetris ALU in Coppric:
 
 chip ALU
   in x[16], y[16], zx, nx, zy, ny, f, no;
