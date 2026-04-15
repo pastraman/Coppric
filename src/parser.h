@@ -34,5 +34,5 @@ typedef struct {
   int wirecount;
 } chip;
 
-chip *parser(Token *tokens, int token_count);
+chip parser(Token *tokens, int token_count);
 #endif
