@@ -50,8 +50,8 @@ end
 
 Status:
 
-Lexer: done. Parser: done. codegen: coming.
-
+Lexer: done. Parser: done. codegen: done.
+testing: needed
 
 Build:
 
