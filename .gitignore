@@ -1,3 +1,4 @@
 *.o
-gateforge
+coppric
 src/lexer
+src/coppric

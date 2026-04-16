@@ -18,7 +18,6 @@ void generate(const char *filename, chip c) {
     fprintf(f, "%s", c.input[i].name);
     first = 0;
   }
-  fprintf(f, "\n");
 
   for (i = 0; i < c.oportcount; i++) {
     if (!first) {
@@ -27,6 +26,7 @@ void generate(const char *filename, chip c) {
     fprintf(f, "%s", c.output[i].name);
     first = 0;
   }
+
   fprintf(f, ");\n");
 
   for (i = 0; i < c.oportcount; i++) {
