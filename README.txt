@@ -1,8 +1,8 @@
 #Coppric
 
 
-Coppric is an HDL transpiler (.cpr → Verilog) I created because I hate Verilog — how it looks, i hate its syntax,
-and i hate the fact its chips need to be named. The syntax is inspired by Nand2Tetris: clean, readable, and (almost) logic gates only.
+Coppric is an HDL transpiler (.cpr → Verilog) I created because I hate Verilog — how it looks, and i hate its syntax.
+The syntax is inspired by Nand2Tetris: clean, readable, and (almost) logic gates only.
 
 
 Philosophy:
