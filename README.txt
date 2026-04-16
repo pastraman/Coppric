@@ -7,7 +7,7 @@ The syntax is inspired by Nand2Tetris: clean, readable, and (almost) logic gates
 
 Philosophy:
 
-1: Anything can be made from transistors and wires, so that's all you get.
+1: Anything can be made from logic gates(nand), so that's all you get.
 2: You will understand what you build and build what you understand.
 3: Want a feature? Make it yourself. Want a multiply gate? Build it.
 
