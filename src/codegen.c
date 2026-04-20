@@ -63,6 +63,9 @@ void generate(const char *filename, chip c) {
         width = atoi(c.gates[i].parameters[j].value);
       }
     }
+    if (outName == NULL || strcmp(outName, "_") == 0) {
+      continue;
+    }
     for (int k = 0; k < c.oportcount; k++) {
       if (strcmp(c.output[k].name, outName) == 0) {
         isOutput = true;
@@ -100,8 +103,23 @@ void generate(const char *filename, chip c) {
       if (!first) {
         fprintf(f, ", ");
       }
-      fprintf(f, ".%s(%s)", c.gates[i].parameters[j].key,
-              c.gates[i].parameters[j].value);
+
+      if (strcmp(c.gates[i].parameters[j].value, "_") == 0) {
+        fprintf(f, ".%s()", c.gates[i].parameters[j].key);
+      }
+
+      else if (strcmp(c.gates[i].parameters[j].value, "true") == 0) {
+        fprintf(f, ".%s(1'b1)", c.gates[i].parameters[j].key);
+      }
+
+      else if (strcmp(c.gates[i].parameters[j].value, "false") == 0) {
+        fprintf(f, ".%s(1'b0)", c.gates[i].parameters[j].key);
+      }
+
+      else {
+        fprintf(f, ".%s(%s)", c.gates[i].parameters[j].key,
+                c.gates[i].parameters[j].value);
+      }
       first = 0;
     }
     fprintf(f, ");\n");

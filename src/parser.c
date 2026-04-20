@@ -12,23 +12,73 @@
 // If the token matches one of the allowed types, advances pos and returns the
 // token. Otherwise prints an error with the line number and kills the program.
 Token expectName(Token *tokens, int *pos) {
-  // Any of these token types can be used as a name — TOK_NAME is the default,
-  // the keywords here are accepted because they're valid signal/port names too.
   if (tokens[*pos].type == TOK_NAME || tokens[*pos].type == TOK_OUT ||
       tokens[*pos].type == TOK_IN || tokens[*pos].type == TOK_PARTS ||
       tokens[*pos].type == TOK_END || tokens[*pos].type == TOK_WIRE) {
-    // Advance past the name token.
+
+    // Verilog reserved words — can't use these as names even though they're
+    // valid in Coppric, because the output .v file would be invalid Verilog.
+    const char *verilogKeywords[] = {
+        // ── Verilog 1995 ──
+        "always", "and", "assign", "begin", "buf", "bufif0", "bufif1", "case",
+        "casex", "casez", "cmos", "deassign", "default", "defparam", "disable",
+        "edge", "else", "end", "endcase", "endfunction", "endmodule",
+        "endprimitive", "endspecify", "endtable", "endtask", "event", "for",
+        "force", "forever", "fork", "function", "highz0", "highz1", "if",
+        "ifnone", "initial", "inout", "input", "integer", "join", "large",
+        "macromodule", "medium", "module", "nand", "negedge", "nmos", "nor",
+        "not", "notif0", "notif1", "or", "output", "parameter", "pmos",
+        "posedge", "primitive", "pull0", "pull1", "pulldown", "pullup", "rcmos",
+        "real", "realtime", "reg", "release", "repeat", "rnmos", "rpmos",
+        "rtran", "rtranif0", "rtranif1", "scalared", "small", "specify",
+        "specparam", "strong0", "strong1", "supply0", "supply1", "table",
+        "task", "time", "tran", "tranif0", "tranif1", "tri", "tri0", "tri1",
+        "triand", "trior", "trireg", "vectored", "wait", "wand", "weak0",
+        "weak1", "while", "wire", "wor", "xnor", "xor",
+        // ── Verilog 2001 additions ──
+        "automatic", "cell", "config", "design", "endconfig", "endgenerate",
+        "generate", "genvar", "incdir", "include", "instance", "liblist",
+        "library", "localparam", "noshowcancelled", "pulsestyle_ondetect",
+        "pulsestyle_onevent", "showcancelled", "signed", "unsigned", "use",
+        // ── Verilog 2005 additions ──
+        "uwire",
+        // ── SystemVerilog additions (common ones) ──
+        "alias", "always_comb", "always_ff", "always_latch", "assert", "assume",
+        "before", "bind", "bins", "binsof", "bit", "break", "byte", "chandle",
+        "class", "clocking", "const", "constraint", "context", "continue",
+        "cover", "covergroup", "coverpoint", "cross", "dist", "do", "endclass",
+        "endclocking", "endgroup", "endinterface", "endpackage", "endprogram",
+        "endproperty", "endsequence", "enum", "expect", "export", "extends",
+        "extern", "final", "first_match", "foreach", "forkjoin", "iff",
+        "ignore_bins", "illegal_bins", "import", "inside", "int", "interface",
+        "intersect", "join_any", "join_none", "local", "logic", "longint",
+        "matches", "modport", "new", "null", "package", "packed", "priority",
+        "program", "property", "protected", "pure", "rand", "randc", "randcase",
+        "randsequence", "ref", "return", "sequence", "shortint", "shortreal",
+        "solve", "static", "string", "struct", "super", "tagged", "this",
+        "throughout", "timeprecision", "timeunit", "type", "typedef", "union",
+        "unique", "var", "virtual", "void", "wait_order", "wildcard", "with",
+        "within"};
+    int keywordCount = sizeof(verilogKeywords) / sizeof(verilogKeywords[0]);
+
+    for (int i = 0; i < keywordCount; i++) {
+      if (strcmp(tokens[*pos].value, verilogKeywords[i]) == 0) {
+        fprintf(stderr,
+                "error on line %d: '%s' is a reserved word in Verilog and "
+                "cannot be used as a name\n",
+                tokens[*pos].line, tokens[*pos].value);
+        exit(1);
+      }
+    }
+
     (*pos)++;
-    // Return the token we just consumed so the caller can read its value.
     return tokens[(*pos) - 1];
   }
 
-  // Current token isn't a name or an acceptable keyword — bail out.
   fprintf(stderr, "error on line %d, keyword used incorrectly",
           tokens[*pos].line);
   exit(1);
 }
-
 // Helper function: checks that the current token matches the expected type.
 // If it does, advances pos and returns the token (so the caller can read its
 // value). If it doesn't, prints an error with the line number and kills the
@@ -49,6 +99,54 @@ Token expect(TokenType expected, Token *tokens, int *pos) {
 
   // Return the token we just consumed so the caller can read its value.
   return tokens[(*pos) - 1];
+}
+
+// Helper function: reads a signal name with optional bus slicing.
+// Accepts plain names like "x", single-bit slices like "o[15]", and
+// ranges like "o[0:7]". Returns a Token where .value contains the full
+// string including brackets, so codegen can pass it straight to Verilog.
+Token expectSignal(Token *tokens, int *pos) {
+  // Start with the base name (port name, wire name, or internal signal).
+  Token nameToken = expectName(tokens, pos);
+
+  // If there's no opening bracket, it's just a plain name — return as-is.
+  if (tokens[*pos].type != TOK_LBRACKET) {
+    return nameToken;
+  }
+
+  // There IS a bracket — build the sliced version.
+  // Append the opening bracket to the name.
+  strcat(nameToken.value, "[");
+  expect(TOK_LBRACKET, tokens, pos);
+
+  // Read the first number (either the single bit index or the range start).
+  // Capture but DON'T strcat yet — we might need to reorder for Verilog syntax.
+  Token numberToken = expect(TOK_NUMBER, tokens, pos);
+
+  // Optional colon + second number for range slicing.
+  // Nand2Tetris uses [LSB:MSB] like [0:7], Verilog uses [MSB:LSB] like [7:0].
+  // So when a colon exists, we swap the order.
+  if (tokens[*pos].type == TOK_COLON) {
+    expect(TOK_COLON, tokens, pos);
+
+    // Second number — the range end in Nand2Tetris, but the MSB for Verilog.
+    Token numberToken2 = expect(TOK_NUMBER, tokens, pos);
+
+    // Write second number first, then colon, then first number.
+    // [0:7] in Coppric becomes [7:0] in Verilog.
+    strcat(nameToken.value, numberToken2.value);
+    strcat(nameToken.value, ":");
+    strcat(nameToken.value, numberToken.value);
+  } else {
+    // No colon — single bit index, no swap needed.
+    strcat(nameToken.value, numberToken.value);
+  }
+
+  // Close the bracket in both the string and the token stream.
+  strcat(nameToken.value, "]");
+  expect(TOK_RBRACKET, tokens, pos);
+
+  return nameToken;
 }
 
 // Main parser entry point.
@@ -92,6 +190,9 @@ chip parse(Token *tokens, int token_count) {
   // Loop reading ports one at a time until we hit the terminating semicolon.
   while (tokens[pos].type != TOK_SEMICOLON) {
     // Read the port name — expectName lets keywords like "out" be valid names.
+    // Note: port DECLARATIONS use width brackets like x[16], which is
+    // different from bus slicing. That's why we still use expectName here
+    // and handle the bracket manually below for width parsing.
     Token current = expectName(tokens, &pos);
     strcpy(currentPort.name, current.value);
 
@@ -180,15 +281,15 @@ chip parse(Token *tokens, int token_count) {
       // A wire has a name and a source signal.
       wire wirename;
 
-      // Wire name — expectName so it works with keyword-style names.
-      Token currentToken = expectName(tokens, &pos);
+      // Wire name — expectSignal so "wire ng[15] = ..." style slicing works.
+      Token currentToken = expectSignal(tokens, &pos);
       strcpy(wirename.name, currentToken.value);
 
       // The `=` between name and source.
       expect(TOK_EQUALS, tokens, &pos);
 
-      // Read the source signal name — also a name, so expectName.
-      currentToken = expectName(tokens, &pos);
+      // Source signal — expectSignal so "= o[15]" or "= o[0:7]" works.
+      currentToken = expectSignal(tokens, &pos);
       strcpy(wirename.source, currentToken.value);
 
       // Closing semicolon.
@@ -224,9 +325,8 @@ chip parse(Token *tokens, int token_count) {
     while (tokens[pos].type != TOK_RPAREN) {
 
       // --- Param key ---
-      // Using expectName lets `in`, `out`, etc. be param keys without a
-      // big if/else chain. Much cleaner than the old version.
-      Token keyToken = expectName(tokens, &pos);
+      // expectSignal so you can slice on the key side too: in[8:10]=something
+      Token keyToken = expectSignal(tokens, &pos);
       strcpy(currentParam.key, keyToken.value);
 
       // Equals sign between key and value.
@@ -258,9 +358,9 @@ chip parse(Token *tokens, int token_count) {
       }
 
       else {
-        // Default case — a signal name. expectName handles TOK_NAME plus
-        // the keyword-style names (in, out, etc.) just like everywhere else.
-        Token valToken = expectName(tokens, &pos);
+        // Default case — a signal name with optional slicing.
+        // expectSignal handles both "=x" and "=o[0:7]".
+        Token valToken = expectSignal(tokens, &pos);
         strcpy(currentParam.value, valToken.value);
       }
 
