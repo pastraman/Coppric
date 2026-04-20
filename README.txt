@@ -51,7 +51,7 @@ end
 Status:
 
 Lexer: done. Parser: done. codegen: done.
-testing: needed
+all thats left is making the standard library
 
 Build:
 
