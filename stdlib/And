@@ -1,0 +1,57 @@
+#! /usr/bin/vvp
+:ivl_version "13.0 (stable)" "(v13_0-dirty)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision + 0;
+:vpi_module "/usr/lib/ivl/system.vpi";
+:vpi_module "/usr/lib/ivl/vhdl_sys.vpi";
+:vpi_module "/usr/lib/ivl/vhdl_textio.vpi";
+:vpi_module "/usr/lib/ivl/v2005_math.vpi";
+:vpi_module "/usr/lib/ivl/va_math.vpi";
+S_0x55d9ab2ea6b0 .scope module, "And" "And" 2 1;
+ .timescale 0 0;
+    .port_info 0 /INPUT 1 "a";
+    .port_info 1 /INPUT 1 "b";
+    .port_info 2 /OUTPUT 1 "out";
+v0x55d9ab2fc310_0 .net "Notout", 0 0, L_0x55d9ab2fc750;  1 drivers
+o0x7f048dfde048 .functor BUFZ 1, c4<z>; HiZ drive
+v0x55d9ab2fc3b0_0 .net "a", 0 0, o0x7f048dfde048;  0 drivers
+o0x7f048dfde078 .functor BUFZ 1, c4<z>; HiZ drive
+v0x55d9ab2fc4a0_0 .net "b", 0 0, o0x7f048dfde078;  0 drivers
+v0x55d9ab2fc5a0_0 .net "out", 0 0, L_0x55d9ab2fc8c0;  1 drivers
+S_0x55d9ab2ea8b0 .scope module, "Nand_0" "Nand" 2 10, 3 4 0, S_0x55d9ab2ea6b0;
+ .timescale 0 0;
+    .port_info 0 /INPUT 1 "a";
+    .port_info 1 /INPUT 1 "b";
+    .port_info 2 /OUTPUT 1 "out";
+P_0x55d9ab2e9530 .param/l "WIDTH" 0 3 9, +C4<00000000000000000000000000000001>;
+L_0x55d9ab2fc640 .functor AND 1, o0x7f048dfde048, o0x7f048dfde078, C4<1>, C4<1>;
+L_0x55d9ab2fc750 .functor NOT 1, L_0x55d9ab2fc640, C4<0>, C4<0>, C4<0>;
+v0x55d9ab2e8d00_0 .net *"_ivl_0", 0 0, L_0x55d9ab2fc640;  1 drivers
+v0x55d9ab2fb4b0_0 .net "a", 0 0, o0x7f048dfde048;  alias, 0 drivers
+v0x55d9ab2fb590_0 .net "b", 0 0, o0x7f048dfde078;  alias, 0 drivers
+v0x55d9ab2fb650_0 .net "out", 0 0, L_0x55d9ab2fc750;  alias, 1 drivers
+S_0x55d9ab2fb7b0 .scope module, "Not_1" "Not" 2 15, 4 1 0, S_0x55d9ab2ea6b0;
+ .timescale 0 0;
+    .port_info 0 /INPUT 1 "in";
+    .port_info 1 /OUTPUT 1 "out";
+v0x55d9ab2fc190_0 .net "in", 0 0, L_0x55d9ab2fc750;  alias, 1 drivers
+v0x55d9ab2fc230_0 .net "out", 0 0, L_0x55d9ab2fc8c0;  alias, 1 drivers
+S_0x55d9ab2fb9e0 .scope module, "Nand_0" "Nand" 4 7, 3 4 0, S_0x55d9ab2fb7b0;
+ .timescale 0 0;
+    .port_info 0 /INPUT 1 "a";
+    .port_info 1 /INPUT 1 "b";
+    .port_info 2 /OUTPUT 1 "out";
+P_0x55d9ab2fbbe0 .param/l "WIDTH" 0 3 9, +C4<00000000000000000000000000000001>;
+L_0x55d9ab2fc830 .functor AND 1, L_0x55d9ab2fc750, L_0x55d9ab2fc750, C4<1>, C4<1>;
+L_0x55d9ab2fc8c0 .functor NOT 1, L_0x55d9ab2fc830, C4<0>, C4<0>, C4<0>;
+v0x55d9ab2fbd40_0 .net *"_ivl_0", 0 0, L_0x55d9ab2fc830;  1 drivers
+v0x55d9ab2fbe40_0 .net "a", 0 0, L_0x55d9ab2fc750;  alias, 1 drivers
+v0x55d9ab2fbf30_0 .net "b", 0 0, L_0x55d9ab2fc750;  alias, 1 drivers
+v0x55d9ab2fc050_0 .net "out", 0 0, L_0x55d9ab2fc8c0;  alias, 1 drivers
+# The file index is used to find the file name in the following table.
+:file_names 5;
+    "N/A";
+    "<interactive>";
+    "And.v";
+    "Nand.v";
+    "Not.v";

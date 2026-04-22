@@ -1,0 +1,9 @@
+chip And
+  in a, b;
+  out out;
+
+  parts:
+    Nand(a=a, b=b, out=Notout);
+    Not(in=Notout, out=out);
+  end
+end

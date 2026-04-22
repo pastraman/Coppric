@@ -1,0 +1,12 @@
+chip Xor
+  in a, b;
+  out out;
+
+  parts:
+    Not(in=a , out=Na );
+    Not(in=b , out=Nb );
+    And(a=Na , b=b , out=outa );
+    And(a=a , b=Nb , out=outb );
+    Or(a=outa , b=outb , out=out );
+  end
+end

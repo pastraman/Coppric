@@ -1,0 +1,9 @@
+chip Dmux
+  in in, sel;
+  out a,b;
+
+  parts:
+    Mux(a=in , b=false , sel=sel , out=a );
+    Mux(a=false , b=in , sel=sel , out=b );
+  end
+end
